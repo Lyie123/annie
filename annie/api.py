@@ -1,0 +1,104 @@
+from .static import Region, Queue, SummonerV4, LeagueV4
+from .dto import SummonerDto, LeagueEntryDto, MiniSeriesDto, LeagueListDto, LeagueItemDto
+
+from typing import Dict, List
+from re import sub
+from tabulate import tabulate
+import requests
+
+
+class BaseApi:
+    def __init__(self, api_key: str):
+        self._api_key = api_key
+        self._header = {
+            'Origin': 'https://developer.riotgames.com',
+            'X-Riot-Token': self._api_key
+        }
+
+    @staticmethod
+    def transform_to_snake_case(data: Dict) -> Dict:
+        translate = {}
+        for n in data:
+            new_key = sub(r'(?<!^)(?=[A-Z])', '_', n).lower()
+            translate[new_key] = data[n]
+        return translate
+
+    def query(self, region: Region, method_name: str, **kwargs) -> Dict:
+        parameters = '&'.join([f'{n}={m}' for n, m in kwargs.items()])
+        uri = f'https://{region.value}{method_name}?{parameters}'
+
+        print(uri)
+
+        r = requests.get(uri, headers=self._header)
+        data = r.json()
+
+        if r.status_code != 200:
+            raise ValueError(f"Status: {data['status']['status_code']} -> {data['status']['message']}")
+
+        return data
+
+
+class LeagueApi(BaseApi):
+    def __init__(self, api_key: str):
+        super().__init__(api_key)
+
+    def get_summoner(self, region: Region, name: str = None, account_id: str = None,
+                     summoner_id: str = None, puuid: str = None) -> SummonerDto:
+
+        if not isinstance(region, Region):
+            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
+
+        if summoner_id:
+            result = self.query(region, SummonerV4.by_id(summoner_id))
+
+        elif account_id:
+            result = self.query(region, SummonerV4.by_account_id(account_id))
+
+        elif puuid:
+            result = self.query(region, SummonerV4.by_puuid(puuid))
+
+        elif name:
+            result = self.query(region, SummonerV4.by_name(name))
+
+        else:
+            raise ValueError('[summoner_id|account_id|puuid|name] is missing')
+
+        result = BaseApi.transform_to_snake_case(result)
+        result['summoner_id'] = result.pop('id')
+
+        return SummonerDto(region=region.name, **result)
+
+    def get_league_entries(self, region: Region, summoner_id: str) -> List[LeagueEntryDto]:
+        if not isinstance(region, Region):
+            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
+
+        result = self.query(region, LeagueV4.entries_by_summoner_id(summoner_id))
+
+        entries = []
+        for entry in result:
+            if 'miniSeries' in entry:
+                entry['mini_series'] = MiniSeriesDto(**entry.pop('miniSeries'))
+
+            entry = BaseApi.transform_to_snake_case(entry)
+            entries.append(LeagueEntryDto(region=region.name, **entry))
+
+        return entries
+
+    def get_challenger_league(self, region: Region, queue: Queue):
+        if not isinstance(region, Region):
+            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
+
+        result = self.query(region, LeagueV4.challenger_league_by_queue(queue.value))
+
+        buffer = []
+        entries = result.pop('entries')
+        for entry in entries:
+            if 'miniSeries' in entry:
+                entry['mini_series'] = MiniSeriesDto(**entry.pop('miniSeries'))
+
+            entry = BaseApi.transform_to_snake_case(entry)
+            buffer.append(LeagueItemDto(**entry))
+
+        result = BaseApi.transform_to_snake_case(result)
+        result['entries'] = buffer
+        return LeagueListDto(**result)
