@@ -8,6 +8,8 @@ authors = ["lyie <moch.rene@googlemail.com>"]
 python = "^3.9"
 requests = "^2.25.1"
 tabulate = "^0.8.9"
+cachetools = "^4.2.2"
+mypy = "^0.812"
 
 [tool.poetry.dev-dependencies]
 

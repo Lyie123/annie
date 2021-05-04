@@ -1,9 +1,9 @@
 from .static import Region, Queue, SummonerV4, LeagueV4
 from .dto import SummonerDto, LeagueEntryDto, MiniSeriesDto, LeagueListDto, LeagueItemDto
 
+from cachetools import cached, TTLCache
 from typing import Dict, List
 from re import sub
-from tabulate import tabulate
 import requests
 
 
@@ -42,11 +42,9 @@ class LeagueApi(BaseApi):
     def __init__(self, api_key: str):
         super().__init__(api_key)
 
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*60))
     def get_summoner(self, region: Region, name: str = None, account_id: str = None,
                      summoner_id: str = None, puuid: str = None) -> SummonerDto:
-
-        if not isinstance(region, Region):
-            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
 
         if summoner_id:
             result = self.query(region, SummonerV4.by_id(summoner_id))
@@ -68,10 +66,8 @@ class LeagueApi(BaseApi):
 
         return SummonerDto(region=region.name, **result)
 
+    @cached(cache=TTLCache(maxsize=1024, ttl=60))
     def get_league_entries(self, region: Region, summoner_id: str) -> List[LeagueEntryDto]:
-        if not isinstance(region, Region):
-            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
-
         result = self.query(region, LeagueV4.entries_by_summoner_id(summoner_id))
 
         entries = []
@@ -84,14 +80,25 @@ class LeagueApi(BaseApi):
 
         return entries
 
-    def get_challenger_league(self, region: Region, queue: Queue):
-        if not isinstance(region, Region):
-            raise ValueError(f'Wrong datatype. Expected "Region". Got {type(region)}')
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+    def get_challenger_league(self, region: Region, queue: Queue) -> LeagueListDto:
+        result = self.query(region, LeagueV4.challenger_league_by_queue(queue))
+        return self._create_league_list_dto(result)
 
-        result = self.query(region, LeagueV4.challenger_league_by_queue(queue.value))
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+    def get_grandmaster_league(self, region: Region, queue: Queue) -> LeagueListDto:
+        result = self.query(region, LeagueV4.grandmaster_league_by_queue(queue))
+        return self._create_league_list_dto(result)
 
+    @cached(cache=TTLCache(maxsize=1024, ttl=60*5))
+    def get_master_league(self, region: Region, queue: Queue) -> LeagueListDto:
+        result = self.query(region, LeagueV4.master_league_by_queue(queue))
+        return self._create_league_list_dto(result)
+
+    @staticmethod
+    def _create_league_list_dto(dto: Dict) -> LeagueListDto:
         buffer = []
-        entries = result.pop('entries')
+        entries = dto.pop('entries')
         for entry in entries:
             if 'miniSeries' in entry:
                 entry['mini_series'] = MiniSeriesDto(**entry.pop('miniSeries'))
@@ -99,6 +106,6 @@ class LeagueApi(BaseApi):
             entry = BaseApi.transform_to_snake_case(entry)
             buffer.append(LeagueItemDto(**entry))
 
-        result = BaseApi.transform_to_snake_case(result)
+        result = BaseApi.transform_to_snake_case(dto)
         result['entries'] = buffer
         return LeagueListDto(**result)

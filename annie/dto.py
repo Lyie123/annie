@@ -1,14 +1,14 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import List
+from typing import List, Dict
 from json import dumps, loads
 
 
 class Dto(ABC):
-    def to_dict(self):
+    def to_dict(self) -> Dict:
         return loads(dumps(self, default=lambda o: getattr(o, '__dict__', str(o))))
 
-    def to_relational(self):
+    def to_relational(self) -> None:
         pass
 
 

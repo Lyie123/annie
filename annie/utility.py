@@ -1,7 +1,7 @@
 from tabulate import tabulate
 
 
-def tabprint(cls) -> None:
+def print_tab(cls) -> None:
     try:
         data = []
         columns = []
