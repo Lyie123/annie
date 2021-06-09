@@ -1,6 +1,6 @@
 from abc import ABC
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Union, Optional
 from json import dumps, loads
 
 
@@ -48,7 +48,7 @@ class LeagueEntryDto(Dto):
     veteran: bool
     fresh_blood: bool
     inactive: bool
-    mini_series: MiniSeriesDto = None
+    mini_series: Optional[MiniSeriesDto] = None
 
 
 @dataclass(frozen=True, order=True)
@@ -63,7 +63,7 @@ class LeagueItemDto(Dto):
     rank: str
     losses: int
     summoner_id: str
-    mini_series: MiniSeriesDto = None
+    mini_series: Optional[MiniSeriesDto] = None
 
 
 @dataclass(frozen=True)
