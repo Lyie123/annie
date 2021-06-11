@@ -3,6 +3,7 @@ from enum import Enum
 
 class Region(Enum):
     EUW = 'euw1.api.riotgames.com'
+    EUROPE = 'europe.api.riotgames.com'
 
 
 class Queue(Enum):
@@ -55,9 +56,14 @@ class LeagueV4:
 
 
 class MatchV5:
-    pass
-
-class TftLeagueV1:
     @staticmethod
-    def entries_by_id(summoner_id: str) -> str:
-        return f'/tft/league/v1/entries/by-summoner/{summoner_id}'
+    def match_history_by_puuid(puuid: str) -> str:
+        return f'/lol/match/v5/matches/by-puuid/{puuid}/ids'
+    
+    @staticmethod
+    def match(match_id: int) -> str:
+        return f'/lol/match/v5/matches/{match_id}'
+
+    @staticmethod
+    def timeline(match_id: int) -> str:
+        return f'/lol/match/v5/matches/{match_id}/timeline'

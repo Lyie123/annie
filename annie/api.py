@@ -1,8 +1,21 @@
-from .static import Region, Queue, SummonerV4, LeagueV4
-from .dto import SummonerDto, LeagueEntryDto, MiniSeriesDto, LeagueListDto, LeagueItemDto, metadata
-
+from .static import Region, Queue, SummonerV4, LeagueV4, MatchV5
+from .dto import(
+    MatchBans,
+    MatchObjectives,
+    MatchTeamDto,
+    SummonerDto, 
+    LeagueEntryDto, 
+    MiniSeriesDto, 
+    LeagueListDto, 
+    LeagueItemDto, 
+    MatchInfoDto,
+    MatchParticipantDto,
+    MatchStatPerksDto,
+    MatchStylePerksDto,
+    metadata
+)
 from cachetools import cached, TTLCache
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Set
 from re import sub
 from datetime import datetime
 import requests
@@ -20,7 +33,7 @@ class BaseApi:
     def transform_to_snake_case(data: Union[Dict, List]) -> Dict:
         translate = None
         if isinstance(data, list):
-            translate = [BaseApi.transform_to_snake_case(n) for n in data]
+            translate = [BaseApi.transform_to_snake_case(n) if isinstance(n, (list, dict)) else n for n in data]
         elif isinstance(data, dict):
             translate = {}
             for k, v in data.items():
@@ -33,7 +46,7 @@ class BaseApi:
         return translate
 
     def query(self, region: Region, method_name: str, **kwargs) -> Dict:
-        parameters = '&'.join([f'{n}={m}' for n, m in kwargs.items()])
+        parameters = '&'.join([f'{n}={m}' for n, m in kwargs.items() if m is not None])
         uri = f'https://{region.value}{method_name}?{parameters}'
 
         print(uri)
@@ -56,7 +69,7 @@ class LeagueApi(BaseApi):
         metadata.create_all(engine)
 
     @cached(cache=TTLCache(maxsize=1024, ttl=60*60))
-    def get_summoner(self, region: Region, name: str = None, account_id: str = None,
+    def get_summoner(self, region: Region, name: str=None, account_id: str=None,
                      summoner_id: str = None, puuid: str = None) -> SummonerDto:
 
         if summoner_id:
@@ -112,6 +125,81 @@ class LeagueApi(BaseApi):
     def get_master_league(self, region: Region, queue: Queue) -> LeagueListDto:
         result = self.query(region, LeagueV4.master_league_by_queue(queue))
         return self._create_league_list_dto(result, region)
+
+    def get_match(self, region: Region, game_id: str):
+        if region == Region.EUW:
+            region = Region.EUROPE
+        
+        result = self.query(region, MatchV5.match(game_id))
+        
+        info = result.pop('info')
+        info['game_creation'] = datetime.fromtimestamp(info['game_creation']/1000.0)
+        info['game_start_timestamp'] = datetime.fromtimestamp(info['game_start_timestamp']/1000.0)
+
+        participants = info.pop('participants')
+        dto_participants = []
+        for participant in participants:
+            perks = participant.pop('perks')
+
+            stats = perks.pop('stat_perks')
+            stats['game_id'] = info['game_id']
+            stats['participant_id'] = participant['participant_id']
+            dto_stats = MatchStatPerksDto(**stats)
+
+            styles = perks.pop('styles')
+            dto_styles = []
+            for style in styles:
+                selections = style.pop('selections')
+                for selection in selections:
+                    selection['game_id'] = info['game_id']
+                    selection['participant_id'] = participant['participant_id']
+                    selection['description'] = style['description']
+                    selection['style'] = style['style']
+                    dto_styles.append(MatchStylePerksDto(**selection))
+
+
+            participant['game_id'] = info['game_id']
+            participant['stat_perks'] = dto_stats
+            participant['style_perks'] = dto_styles
+            dto_participants.append(MatchParticipantDto(**participant))
+
+        dto_teams = []
+        teams = info.pop('teams')
+        for team in teams:
+            dto_bans = []
+            bans = team.pop('bans')
+            for ban in bans:
+                ban['game_id'] = info['game_id']
+                ban['team_id'] = team['team_id']
+                dto_bans.append(MatchBans(**ban))
+            
+            dto_objectives = []
+            objectives = team.pop('objectives')
+            for objective in objectives:
+                buffer = objectives[objective]
+                buffer['objective'] = objective
+                buffer['game_id'] = info['game_id']
+                buffer['team_id'] = team['team_id']
+                dto_objectives.append(MatchObjectives(**buffer))
+
+            team['game_id'] = info['game_id']
+            team['bans'] = dto_bans
+            team['objectives'] = dto_objectives
+            dto_teams.append(MatchTeamDto(**team))
+
+        info['participants'] = dto_participants
+        info['teams'] = dto_teams
+        return MatchInfoDto(**info)
+
+    def get_timeline(self):
+        pass
+
+    def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None):
+        if region == Region.EUW:
+            region = Region.EUROPE
+
+        result = self.query(region, MatchV5.match_history_by_puuid(puuid), count=count, start=start)
+        return result
 
     @staticmethod
     def _create_league_list_dto(data: Dict, region: Region) -> LeagueListDto:
