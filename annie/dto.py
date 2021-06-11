@@ -1,27 +1,18 @@
-from abc import ABC
 from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
 from sqlalchemy.orm import registry
 from sqlalchemy import Column, String, Integer, DateTime, Boolean
 from datetime import datetime
-from json import dumps, loads
 
 
 mapper_registry = registry()
 metadata = mapper_registry.metadata
 Base = mapper_registry.generate_base()
 
-class Dto(ABC):
-    def to_dict(self) -> Dict:
-        return loads(dumps(self, default=lambda o: getattr(o, '__dict__', str(o))))
-
-    def to_relational(self) -> None:
-        pass
-
 
 @mapper_registry.mapped
 @dataclass
-class SummonerDto(Dto):
+class SummonerDto:
     __tablename__ = 'summoner'
     __sa_dataclass_metadata_key__ = 'sa'
 
@@ -37,7 +28,7 @@ class SummonerDto(Dto):
 
 @mapper_registry.mapped
 @dataclass
-class MiniSeriesDto(Dto):
+class MiniSeriesDto:
     __tablename__ = 'mini_series'
     __sa_dataclass_metadata_key__ = 'sa'
 
@@ -52,7 +43,7 @@ class MiniSeriesDto(Dto):
 
 @mapper_registry.mapped
 @dataclass
-class LeagueEntryDto(Dto):
+class LeagueEntryDto:
     __tablename__ = 'league_entry'
     __sa_dataclass_metadata_key__ = 'sa'
 
@@ -75,7 +66,7 @@ class LeagueEntryDto(Dto):
 
 @mapper_registry.mapped
 @dataclass(order=True)
-class LeagueItemDto(Dto):
+class LeagueItemDto:
     __tablename__ = 'league_item'
     __sa_dataclass_metadata_key__ = 'sa'
 
@@ -96,7 +87,7 @@ class LeagueItemDto(Dto):
 
 @mapper_registry.mapped
 @dataclass
-class LeagueListDto(Dto):
+class LeagueListDto:
     __tablename__ = 'league_list'
     __sa_dataclass_metadata_key__ = 'sa'
 

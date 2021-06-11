@@ -2,9 +2,9 @@ from .static import Region, Queue, SummonerV4, LeagueV4
 from .dto import SummonerDto, LeagueEntryDto, MiniSeriesDto, LeagueListDto, LeagueItemDto, metadata
 
 from cachetools import cached, TTLCache
-from typing import Dict, List
+from typing import Dict, List, Union
 from re import sub
-from datetime import date, datetime
+from datetime import datetime
 import requests
 
 
@@ -17,11 +17,19 @@ class BaseApi:
         }
 
     @staticmethod
-    def transform_to_snake_case(data: Dict) -> Dict:
-        translate = {}
-        for n in data:
-            new_key = sub(r'(?<!^)(?=[A-Z])', '_', n).lower()
-            translate[new_key] = data[n]
+    def transform_to_snake_case(data: Union[Dict, List]) -> Dict:
+        translate = None
+        if isinstance(data, list):
+            translate = [BaseApi.transform_to_snake_case(n) for n in data]
+        elif isinstance(data, dict):
+            translate = {}
+            for k, v in data.items():
+                    new_key = sub(r'(?<!^)(?=[A-Z])', '_', k).lower()
+                    if isinstance(v, (dict, list)):
+                        new_value = BaseApi.transform_to_snake_case(v)    
+                        translate[new_key] = new_value
+                    else:
+                        translate[new_key] = v
         return translate
 
     def query(self, region: Region, method_name: str, **kwargs) -> Dict:
@@ -35,7 +43,8 @@ class BaseApi:
 
         if r.status_code != 200:
             raise ValueError(f"Status: {data['status']['status_code']} -> {data['status']['message']}")
-
+        
+        data = self.transform_to_snake_case(data)
         return data
 
 
@@ -65,7 +74,6 @@ class LeagueApi(BaseApi):
         else:
             raise ValueError('[summoner_id|account_id|puuid|name] is missing')
 
-        result = BaseApi.transform_to_snake_case(result)
         result['summoner_id'] = result.pop('id')
         result['summoner_name'] = result.pop('name')
         result['revision_date'] = datetime.fromtimestamp(result['revision_date']/1000.0)
@@ -78,16 +86,14 @@ class LeagueApi(BaseApi):
 
         entries = []
         for entry in result:
-            print(entry)
-            if 'miniSeries' in entry:
+            if 'mini_series' in entry:
                 entry['mini_series'] = MiniSeriesDto(
                     region=region.name, 
                     summoner_id=summoner_id, 
-                    league_id=entry['leagueId'],
-                    **entry.pop('miniSeries')
+                    league_id=entry['league_id'],
+                    **entry.pop('mini_series')
                 )
 
-            entry = BaseApi.transform_to_snake_case(entry)
             entries.append(LeagueEntryDto(region=region.name, **entry))
 
         return entries
@@ -108,21 +114,18 @@ class LeagueApi(BaseApi):
         return self._create_league_list_dto(result, region)
 
     @staticmethod
-    def _create_league_list_dto(dto: Dict, region: Region) -> LeagueListDto:
+    def _create_league_list_dto(data: Dict, region: Region) -> LeagueListDto:
         buffer = []
-        entries = dto.pop('entries')
+        entries = data.pop('entries')
         for entry in entries:
-            if 'miniSeries' in entry:
+            if 'mini_series' in entry:
                 entry['mini_series'] = MiniSeriesDto(
                     region=region.name,
-                    summoner_id=entry['summonerId'],
-                    league_id=dto['leagueId'],
-                    **entry.pop('miniSeries')
+                    summoner_id=entry['summoner_id'],
+                    league_id=data['league_id'],
+                    **entry.pop('mini_series')
                 )
+            buffer.append(LeagueItemDto(region=region.name, league_id=data['league_id'], **entry))
 
-            entry = BaseApi.transform_to_snake_case(entry)
-            buffer.append(LeagueItemDto(region=region.name, league_id=dto['leagueId'], **entry))
-
-        result = BaseApi.transform_to_snake_case(dto)
-        result['entries'] = buffer
-        return LeagueListDto(region=region.name, **result)
+        data['entries'] = buffer
+        return LeagueListDto(region=region.name, **data)
