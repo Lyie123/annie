@@ -12,6 +12,7 @@ from .dto import(
     MatchParticipantDto,
     MatchStatPerksDto,
     MatchStylePerksDto,
+    MatchParticipantFramesDto,
     metadata
 )
 from cachetools import cached, TTLCache
@@ -126,7 +127,7 @@ class LeagueApi(BaseApi):
         result = self.query(region, LeagueV4.master_league_by_queue(queue))
         return self._create_league_list_dto(result, region)
 
-    def get_match(self, region: Region, game_id: str):
+    def get_match(self, region: Region, game_id: str, fetch_timeline: bool=False) -> MatchInfoDto:
         if region == Region.EUW:
             region = Region.EUROPE
         
@@ -189,10 +190,38 @@ class LeagueApi(BaseApi):
 
         info['participants'] = dto_participants
         info['teams'] = dto_teams
+
+        if fetch_timeline:
+            timeline = self.get_timeline(region, game_id)
+            info['timeline_participants'] = timeline['participants']
+
         return MatchInfoDto(**info)
 
-    def get_timeline(self):
-        pass
+    def get_timeline(self, region: Region, game_id: str):
+        if region == Region.EUW:
+            region = Region.EUROPE
+        
+        result = self.query(region, MatchV5.timeline(game_id))
+        info = result.pop('info')
+        frames = info.pop('frames')
+        dto_participant_frames = []
+
+        for frame in frames:
+            participants = frame.pop('participant_frames')
+            for participant in participants.values():
+                champion_stats = participant.pop('champion_stats')
+                damage_stats = participant.pop('damage_stats')
+                position = participant.pop('position')
+                participant['game_id'] = info['game_id']
+                participant['timestamp'] = frame['timestamp']
+                dto_participant_frames.append(MatchParticipantFramesDto(
+                    **participant, 
+                    **champion_stats, 
+                    **damage_stats,
+                    **position
+                ))
+
+        return {'participants': dto_participant_frames}
 
     def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None):
         if region == Region.EUW:

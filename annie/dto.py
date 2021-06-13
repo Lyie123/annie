@@ -261,8 +261,8 @@ class MatchParticipantDto(Dto):
     wards_killed: int = field(metadata={'sa': Column(Integer)})
     wards_placed: int = field(metadata={'sa': Column(Integer)})
     win: bool = field(metadata={'sa': Column(Boolean)})
-    stat_perks: Optional[MatchStatPerksDto] = None
-    style_perks: Optional[List[MatchStatPerksDto]] = None
+    stat_perks: MatchStatPerksDto
+    style_perks: List[MatchStatPerksDto]
 
 
 @mapper_registry.mapped
@@ -291,6 +291,66 @@ class MatchBans(Dto):
     
     champion_id: int = field(metadata={'sa': Column(Integer)})
 
+
+@mapper_registry.mapped
+@dataclass
+class MatchParticipantFramesDto(Dto):
+    __tablename__ = 'timeline_participants'
+    __sa_dataclass_metadata_key__ = 'sa'
+
+    game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
+    timestamp: int = field(metadata={'sa': Column(Integer, primary_key=True)})
+
+    ability_haste: int = field(metadata={'sa': Column(Integer)})
+    ability_power: int = field(metadata={'sa': Column(Integer)})
+    armor: int = field(metadata={'sa': Column(Integer)})
+    armor_pen: int = field(metadata={'sa': Column(Integer)})
+    armor_pen_percent: int = field(metadata={'sa': Column(Integer)})
+    attack_damage: int = field(metadata={'sa': Column(Integer)})
+    attack_speed: int = field(metadata={'sa': Column(Integer)})
+    bonus_armor_pen_percent: int = field(metadata={'sa': Column(Integer)})
+    bonus_magic_pen_percent: int = field(metadata={'sa': Column(Integer)})
+    cc_reduction: int = field(metadata={'sa': Column(Integer)})
+    cooldown_reduction: int = field(metadata={'sa': Column(Integer)})
+    health: int = field(metadata={'sa': Column(Integer)})
+    health_max: int = field(metadata={'sa': Column(Integer)})
+    health_regen: int = field(metadata={'sa': Column(Integer)})
+    lifesteal: int = field(metadata={'sa': Column(Integer)})
+    magic_pen: int = field(metadata={'sa': Column(Integer)})
+    magic_pen_percent: int = field(metadata={'sa': Column(Integer)})
+    magic_resist: int = field(metadata={'sa': Column(Integer)})
+    movement_speed: int = field(metadata={'sa': Column(Integer)})
+    omnivamp: int = field(metadata={'sa': Column(Integer)})
+    physical_vamp: int = field(metadata={'sa': Column(Integer)})
+    power: int = field(metadata={'sa': Column(Integer)})
+    power_max: int = field(metadata={'sa': Column(Integer)})
+    power_regen: int = field(metadata={'sa': Column(Integer)})
+    spell_vamp: int = field(metadata={'sa': Column(Integer)})
+    current_gold: int = field(metadata={'sa': Column(Integer)})
+    magic_damage_done: int = field(metadata={'sa': Column(Integer)})
+    magic_damage_done_to_champions: int = field(metadata={'sa': Column(Integer)})
+    magic_damage_taken: int = field(metadata={'sa': Column(Integer)})
+    physical_damage_done: int = field(metadata={'sa': Column(Integer)})
+    physical_damage_done_to_champions: int = field(metadata={'sa': Column(Integer)})
+    physical_damage_taken: int = field(metadata={'sa': Column(Integer)})
+    total_damage_done: int = field(metadata={'sa': Column(Integer)})
+    total_damage_done_to_champions: int = field(metadata={'sa': Column(Integer)})
+    total_damage_taken: int = field(metadata={'sa': Column(Integer)})
+    true_damage_done: int = field(metadata={'sa': Column(Integer)})
+    true_damage_done_to_champions: int = field(metadata={'sa': Column(Integer)})
+    true_damage_taken: int = field(metadata={'sa': Column(Integer)})
+    gold_per_second: int = field(metadata={'sa': Column(Integer)})
+    jungle_minions_killed: int = field(metadata={'sa': Column(Integer)})
+    level: int = field(metadata={'sa': Column(Integer)})
+    minions_killed: int = field(metadata={'sa': Column(Integer)})
+    x: int = field(metadata={'sa': Column(Integer)})
+    y: int = field(metadata={'sa': Column(Integer)})
+    time_enemy_spent_controlled: int = field(metadata={'sa': Column(Integer)})
+    total_gold: int = field(metadata={'sa': Column(Integer)})
+    xp: int = field(metadata={'sa': Column(Integer)})
+
+
 @mapper_registry.mapped
 @dataclass
 class MatchTeamDto(Dto):
@@ -301,9 +361,9 @@ class MatchTeamDto(Dto):
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
     win: bool = field(metadata={'sa': Column(Boolean)})
+
     bans: List[MatchBans]
     objectives: List[MatchObjectives]
-
 
 @mapper_registry.mapped
 @dataclass
@@ -313,6 +373,7 @@ class MatchInfoDto(Dto):
 
     platform_id: str = field(metadata={'sa': Column(String(10), primary_key=True)})
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+
     game_creation: datetime = field(metadata={'sa': Column(DateTime)})
     game_duration: int = field(metadata={'sa': Column(Integer)})
     game_mode: str = field(metadata={'sa': Column(String(60))})
@@ -322,5 +383,7 @@ class MatchInfoDto(Dto):
     game_version: str = field(metadata={'sa': Column(String(60))})
     map_id: int = field(metadata={'sa': Column(Integer)})
     queue_id: int = field(metadata={'sa': Column(Integer)})
+
     participants: Optional[MatchParticipantDto]
     teams: List[MatchTeamDto]
+    timeline_participants: Optional[List[MatchParticipantFramesDto]] = None

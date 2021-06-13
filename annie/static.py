@@ -61,9 +61,9 @@ class MatchV5:
         return f'/lol/match/v5/matches/by-puuid/{puuid}/ids'
     
     @staticmethod
-    def match(match_id: int) -> str:
+    def match(match_id: str) -> str:
         return f'/lol/match/v5/matches/{match_id}'
 
     @staticmethod
-    def timeline(match_id: int) -> str:
+    def timeline(match_id: str) -> str:
         return f'/lol/match/v5/matches/{match_id}/timeline'
