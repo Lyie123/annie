@@ -61,6 +61,8 @@ class BaseApi:
         data = self.transform_to_snake_case(data)
         return data
 
+    def set_api_key(self, api_key: str):
+        self._api_key = api_key
 
 class LeagueApi(BaseApi):
     def __init__(self, api_key: str):
