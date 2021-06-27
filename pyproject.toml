@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "annie"
-version = "0.1.0"
+version = "0.1.1-alpha.0"
 description = ""
 authors = ["lyie <moch.rene@googlemail.com>"]
 
@@ -12,7 +12,6 @@ cachetools = "^4.2.2"
 mypy = "^0.812"
 SQLAlchemy = "^1.4.17"
 psycopg2-binary = "^2.8.6"
-psycopg2 = "^2.8.6"
 
 [tool.poetry.dev-dependencies]
 
