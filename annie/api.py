@@ -56,7 +56,7 @@ class BaseApi:
         data = r.json()
 
         if r.status_code != 200:
-            raise ValueError(f"Status: {data['status']['status_code']} -> {data['status']['message']}")
+            raise ValueError(f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
         
         data = self.transform_to_snake_case(data)
         return data
@@ -66,7 +66,7 @@ class BaseApi:
         self._header['X-Riot-Token'] = api_key
 
 class LeagueApi(BaseApi):
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str=''):
         super().__init__(api_key)
 
     def create_schema(self, engine):
