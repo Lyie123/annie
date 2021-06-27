@@ -23,7 +23,7 @@ import requests
 
 
 class BaseApi:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str=''):
         self._api_key = api_key
         self._header = {
             'Origin': 'https://developer.riotgames.com',
