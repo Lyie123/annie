@@ -15,6 +15,8 @@ from .dto import(
     MatchParticipantFramesDto,
     metadata
 )
+from .exception import ApiException
+
 from cachetools import cached, TTLCache
 from typing import Dict, List, Union, Set
 from re import sub
@@ -56,7 +58,7 @@ class BaseApi:
         data = r.json()
 
         if r.status_code != 200:
-            raise ValueError(f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
+            raise ApiException(message=f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
         
         data = self.transform_to_snake_case(data)
         return data
