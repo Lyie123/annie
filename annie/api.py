@@ -63,6 +63,7 @@ class BaseApi:
 
     def set_api_key(self, api_key: str):
         self._api_key = api_key
+        self._header['X-Riot-Token'] = api_key
 
 class LeagueApi(BaseApi):
     def __init__(self, api_key: str):
