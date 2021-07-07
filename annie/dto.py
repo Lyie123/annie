@@ -1,11 +1,13 @@
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
-from sqlalchemy.orm import registry
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger
+from sqlalchemy.orm import registry, backref, relation, relationship
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey
 from datetime import datetime
+from sqlalchemy.orm.relationships import foreign
 
 from sqlalchemy.sql.operators import startswith_op
+from sqlalchemy.sql.schema import ForeignKeyConstraint
 
 
 mapper_registry = registry()
@@ -127,6 +129,9 @@ class LeagueListDto(Dto):
 class MatchStatPerksDto(Dto):
     __tablename__ = 'stat_perks'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ =  (
+        ForeignKeyConstraint(['game_id', 'participant_id'], ['participants.game_id', 'participants.participant_id']),
+    )
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -141,13 +146,16 @@ class MatchStatPerksDto(Dto):
 class MatchStylePerksDto(Dto):
     __tablename__ = 'style_perks'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ =  (
+        ForeignKeyConstraint(['game_id', 'participant_id'], ['participants.game_id', 'participants.participant_id']),
+    )
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     description: str = field(metadata={'sa': Column(String(30), primary_key=True)})
+    style: int = field(metadata={'sa': Column(Integer, primary_key=True)})
+    perk: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
-    style: int = field(metadata={'sa': Column(Integer)})
-    perk: int = field(metadata={'sa': Column(Integer)})
     var1: int = field(metadata={'sa': Column(Integer)})
     var2: int = field(metadata={'sa': Column(Integer)})
     var3: int = field(metadata={'sa': Column(Integer)})
@@ -158,7 +166,7 @@ class MatchParticipantDto(Dto):
     __tablename__ = 'participants'
     __sa_dataclass_metadata_key__ = 'sa'
 
-    game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    game_id: int = field(metadata={'sa': Column(BigInteger, ForeignKey('matches.game_id'), primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
@@ -190,6 +198,7 @@ class MatchParticipantDto(Dto):
     individual_position: str = field(metadata={'sa': Column(String(20))})
     inhibitor_kills: int = field(metadata={'sa': Column(Integer)})
     inhibitors_lost: int = field(metadata={'sa': Column(Integer)})
+    inhibitor_takedowns: int = field(metadata={'sa': Column(Integer)})
     item0: int = field(metadata={'sa': Column(Integer)})
     item1: int = field(metadata={'sa': Column(Integer)})
     item2: int = field(metadata={'sa': Column(Integer)})
@@ -211,6 +220,7 @@ class MatchParticipantDto(Dto):
     neutral_minions_killed: int = field(metadata={'sa': Column(Integer)})
     nexus_kills: int = field(metadata={'sa': Column(Integer)})
     nexus_lost: int = field(metadata={'sa': Column(Integer)})
+    nexus_takedowns: int = field(metadata={'sa': Column(Integer)})
     objectives_stolen: int = field(metadata={'sa': Column(Integer)})
     objectives_stolen_assists: int = field(metadata={'sa': Column(Integer)})
     penta_kills: int = field(metadata={'sa': Column(Integer)})
@@ -255,21 +265,26 @@ class MatchParticipantDto(Dto):
     true_damage_taken: int = field(metadata={'sa': Column(Integer)})
     turret_kills: int = field(metadata={'sa': Column(Integer)})
     turrets_lost: int = field(metadata={'sa': Column(Integer)})
+    turret_takedowns: int = field(metadata={'sa': Column(Integer)})
     unreal_kills: int = field(metadata={'sa': Column(Integer)})
     vision_score: int = field(metadata={'sa': Column(Integer)})
     vision_wards_bought_in_game: int = field(metadata={'sa': Column(Integer)})
     wards_killed: int = field(metadata={'sa': Column(Integer)})
     wards_placed: int = field(metadata={'sa': Column(Integer)})
     win: bool = field(metadata={'sa': Column(Boolean)})
-    stat_perks: MatchStatPerksDto
-    style_perks: List[MatchStatPerksDto]
+
+    style_perks: List[MatchStylePerksDto] = relationship('MatchStylePerksDto', backref='participants', lazy=True)
+    stat_perks: List[MatchStatPerksDto] = relationship('MatchStatPerksDto', backref='participants', lazy=True)
 
 
 @mapper_registry.mapped
 @dataclass
-class MatchObjectives(Dto):
+class MatchObjectivesDto(Dto):
     __tablename__ = 'objectives'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ =  (
+        ForeignKeyConstraint(['game_id', 'team_id'], ['teams.game_id', 'teams.team_id']),
+    )
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -281,9 +296,12 @@ class MatchObjectives(Dto):
 
 @mapper_registry.mapped
 @dataclass
-class MatchBans(Dto):
+class MatchBansDto(Dto):
     __tablename__ = 'bans'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ =  (
+        ForeignKeyConstraint(['game_id', 'team_id'], ['teams.game_id', 'teams.team_id']),
+    )
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -357,13 +375,13 @@ class MatchTeamDto(Dto):
     __tablename__ = 'teams'
     __sa_dataclass_metadata_key__ = 'sa'
 
-    game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    game_id: int = field(metadata={'sa': Column(BigInteger, ForeignKey('matches.game_id'), primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
     win: bool = field(metadata={'sa': Column(Boolean)})
 
-    bans: List[MatchBans]
-    objectives: List[MatchObjectives]
+    objectives: List[MatchObjectivesDto] = relationship('MatchObjectivesDto', backref='teams', lazy=True)
+    bans: List[MatchBansDto] = relationship('MatchBansDto', backref='teams', lazy=True)
 
 @mapper_registry.mapped
 @dataclass
@@ -383,7 +401,8 @@ class MatchInfoDto(Dto):
     game_version: str = field(metadata={'sa': Column(String(60))})
     map_id: int = field(metadata={'sa': Column(Integer)})
     queue_id: int = field(metadata={'sa': Column(Integer)})
+    tournament_code: str = field(metadata={'sa': Column(String(60))})
 
-    participants: Optional[MatchParticipantDto]
-    teams: List[MatchTeamDto]
+    participants: List[MatchParticipantDto] = relationship('MatchParticipantDto', backref='matches', lazy=True)
+    teams: List[MatchTeamDto] = relationship('MatchTeamDto', backref='matches', lazy=True)
     timeline_participants: Optional[List[MatchParticipantFramesDto]] = None

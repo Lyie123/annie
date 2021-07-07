@@ -1,7 +1,7 @@
 from .static import Region, Queue, SummonerV4, LeagueV4, MatchV5
 from .dto import(
-    MatchBans,
-    MatchObjectives,
+    MatchBansDto,
+    MatchObjectivesDto,
     MatchTeamDto,
     SummonerDto, 
     LeagueEntryDto, 
@@ -165,7 +165,7 @@ class LeagueApi(BaseApi):
 
 
             participant['game_id'] = info['game_id']
-            participant['stat_perks'] = dto_stats
+            participant['stat_perks'] = [dto_stats]
             participant['style_perks'] = dto_styles
             dto_participants.append(MatchParticipantDto(**participant))
 
@@ -177,7 +177,7 @@ class LeagueApi(BaseApi):
             for ban in bans:
                 ban['game_id'] = info['game_id']
                 ban['team_id'] = team['team_id']
-                dto_bans.append(MatchBans(**ban))
+                dto_bans.append(MatchBansDto(**ban))
             
             dto_objectives = []
             objectives = team.pop('objectives')
@@ -186,7 +186,7 @@ class LeagueApi(BaseApi):
                 buffer['objective'] = objective
                 buffer['game_id'] = info['game_id']
                 buffer['team_id'] = team['team_id']
-                dto_objectives.append(MatchObjectives(**buffer))
+                dto_objectives.append(MatchObjectivesDto(**buffer))
 
             team['game_id'] = info['game_id']
             team['bans'] = dto_bans
