@@ -198,7 +198,6 @@ class MatchParticipantDto(Dto):
     individual_position: str = field(metadata={'sa': Column(String(20))})
     inhibitor_kills: int = field(metadata={'sa': Column(Integer)})
     inhibitors_lost: int = field(metadata={'sa': Column(Integer)})
-    inhibitor_takedowns: int = field(metadata={'sa': Column(Integer)})
     item0: int = field(metadata={'sa': Column(Integer)})
     item1: int = field(metadata={'sa': Column(Integer)})
     item2: int = field(metadata={'sa': Column(Integer)})
@@ -220,7 +219,6 @@ class MatchParticipantDto(Dto):
     neutral_minions_killed: int = field(metadata={'sa': Column(Integer)})
     nexus_kills: int = field(metadata={'sa': Column(Integer)})
     nexus_lost: int = field(metadata={'sa': Column(Integer)})
-    nexus_takedowns: int = field(metadata={'sa': Column(Integer)})
     objectives_stolen: int = field(metadata={'sa': Column(Integer)})
     objectives_stolen_assists: int = field(metadata={'sa': Column(Integer)})
     penta_kills: int = field(metadata={'sa': Column(Integer)})
@@ -265,7 +263,6 @@ class MatchParticipantDto(Dto):
     true_damage_taken: int = field(metadata={'sa': Column(Integer)})
     turret_kills: int = field(metadata={'sa': Column(Integer)})
     turrets_lost: int = field(metadata={'sa': Column(Integer)})
-    turret_takedowns: int = field(metadata={'sa': Column(Integer)})
     unreal_kills: int = field(metadata={'sa': Column(Integer)})
     vision_score: int = field(metadata={'sa': Column(Integer)})
     vision_wards_bought_in_game: int = field(metadata={'sa': Column(Integer)})
@@ -275,6 +272,10 @@ class MatchParticipantDto(Dto):
 
     style_perks: List[MatchStylePerksDto] = relationship('MatchStylePerksDto', backref='participants', lazy=True)
     stat_perks: List[MatchStatPerksDto] = relationship('MatchStatPerksDto', backref='participants', lazy=True)
+
+    inhibitor_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
+    turret_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
+    nexus_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
 
 
 @mapper_registry.mapped
@@ -401,8 +402,9 @@ class MatchInfoDto(Dto):
     game_version: str = field(metadata={'sa': Column(String(60))})
     map_id: int = field(metadata={'sa': Column(Integer)})
     queue_id: int = field(metadata={'sa': Column(Integer)})
-    tournament_code: str = field(metadata={'sa': Column(String(60))})
 
     participants: List[MatchParticipantDto] = relationship('MatchParticipantDto', backref='matches', lazy=True)
     teams: List[MatchTeamDto] = relationship('MatchTeamDto', backref='matches', lazy=True)
     timeline_participants: Optional[List[MatchParticipantFramesDto]] = None
+
+    tournament_code: str = field(default=None, metadata={'sa': Column(String(60))})

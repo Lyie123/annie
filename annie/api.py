@@ -18,14 +18,14 @@ from .dto import(
 from .exception import ApiException
 
 from cachetools import cached, TTLCache
-from typing import Dict, List, Union, Set
+from typing import Dict, List, Union, Set, Optional
 from re import sub
 from datetime import datetime
 import requests
 
 
 class BaseApi:
-    def __init__(self, api_key: str=''):
+    def __init__(self, api_key: Optional[str]=None):
         self._api_key = api_key
         self._header = {
             'Origin': 'https://developer.riotgames.com',
@@ -68,7 +68,7 @@ class BaseApi:
         self._header['X-Riot-Token'] = api_key
 
 class LeagueApi(BaseApi):
-    def __init__(self, api_key: str=''):
+    def __init__(self, api_key: Optional[str]=None):
         super().__init__(api_key)
 
     def create_schema(self, engine):
