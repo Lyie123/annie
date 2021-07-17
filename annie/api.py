@@ -13,7 +13,6 @@ from .dto import(
     MatchStatPerksDto,
     MatchStylePerksDto,
     MatchParticipantFramesDto,
-    metadata
 )
 from .exception import ApiException
 
@@ -25,12 +24,9 @@ import requests
 
 
 class BaseApi:
-    def __init__(self, api_key: Optional[str]=None):
+    def __init__(self, api_key: List[str]=[]):
         self._api_key = api_key
-        self._header = {
-            'Origin': 'https://developer.riotgames.com',
-            'X-Riot-Token': self._api_key
-        }
+        
 
     @staticmethod
     def transform_to_snake_case(data: Union[Dict, List]) -> Dict:
@@ -54,7 +50,11 @@ class BaseApi:
 
         print(uri)
 
-        r = requests.get(uri, headers=self._header)
+        header = {
+            'Origin': 'https://developer.riotgames.com',
+            'X-Riot-Token': self._api_key
+        }
+        r = requests.get(uri, headers=header)
         data = r.json()
 
         if r.status_code != 200:
@@ -63,16 +63,13 @@ class BaseApi:
         data = self.transform_to_snake_case(data)
         return data
 
-    def set_api_key(self, api_key: str):
+    def set_api_key(self, api_key: List[str]):
         self._api_key = api_key
-        self._header['X-Riot-Token'] = api_key
+        
 
 class LeagueApi(BaseApi):
     def __init__(self, api_key: Optional[str]=None):
         super().__init__(api_key)
-
-    def create_schema(self, engine):
-        metadata.create_all(engine)
 
     @cached(cache=TTLCache(maxsize=1024, ttl=60*60))
     def get_summoner(self, region: Region, name: str=None, account_id: str=None,

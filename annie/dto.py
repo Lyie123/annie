@@ -3,11 +3,8 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
 from sqlalchemy.orm import registry, backref, relation, relationship
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey
-from datetime import datetime
-from sqlalchemy.orm.relationships import foreign
-
-from sqlalchemy.sql.operators import startswith_op
 from sqlalchemy.sql.schema import ForeignKeyConstraint
+from datetime import datetime
 
 
 mapper_registry = registry()
