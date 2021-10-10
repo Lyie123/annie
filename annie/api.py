@@ -3,11 +3,11 @@ from .dto import(
     MatchBansDto,
     MatchObjectivesDto,
     MatchTeamDto,
-    SummonerDto, 
-    LeagueEntryDto, 
-    MiniSeriesDto, 
-    LeagueListDto, 
-    LeagueItemDto, 
+    SummonerDto,
+    LeagueEntryDto,
+    MiniSeriesDto,
+    LeagueListDto,
+    LeagueItemDto,
     MatchInfoDto,
     MatchParticipantDto,
     MatchStatPerksDto,
@@ -21,12 +21,11 @@ from typing import Dict, List, Union, Set, Optional
 from re import sub
 from datetime import datetime
 import requests
-
+from time import sleep
 
 class BaseApi:
-    def __init__(self, api_key: List[str]=[]):
+    def __init__(self, api_key: str):
         self._api_key = api_key
-        
 
     @staticmethod
     def transform_to_snake_case(data: Union[Dict, List]) -> Dict:
@@ -57,18 +56,26 @@ class BaseApi:
         r = requests.get(uri, headers=header)
         data = r.json()
 
-        if r.status_code != 200:
+        if r.status_code == 429:
+            print('rate limit exceeded -> sleep 2min')
+            sleep(120)
+
+            r = requests.get(uri, headers=header)
+            data = r.json()
+            if r.status_code != 200:
+                raise ApiException(message=f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
+        elif r.status_code != 200:
             raise ApiException(message=f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
-        
+
         data = self.transform_to_snake_case(data)
         return data
 
     def set_api_key(self, api_key: List[str]):
         self._api_key = api_key
-        
+
 
 class LeagueApi(BaseApi):
-    def __init__(self, api_key: Optional[str]=None):
+    def __init__(self, api_key: str):
         super().__init__(api_key)
 
     @cached(cache=TTLCache(maxsize=1024, ttl=60*60))

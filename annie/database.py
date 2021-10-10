@@ -8,10 +8,12 @@ from sqlalchemy.orm import Session
 
 class Database:
     def __init__(self, connection_string: str) -> None:
-        self._engine = create_engine(connection_string, echo=True, future=True)
+        self._engine = create_engine(connection_string, future=True)
+        self._session = Session(self._engine)
     
-    def session(self):
-        return Session(self._engine)
+    @property
+    def session(self) -> Session:
+        return self._session
     
     def create_schema(self, overwrite=False):
         if overwrite:
