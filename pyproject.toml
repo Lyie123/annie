@@ -12,6 +12,7 @@ cachetools = "^4.2.2"
 mypy = "^0.812"
 SQLAlchemy = "^1.4.17"
 psycopg2-binary = "^2.8.6"
+click = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 
