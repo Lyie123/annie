@@ -26,6 +26,9 @@ class Dto(ABC):
                 buffer.append(value)
         return buffer
 
+    def to_dict(self):
+        return self.__dict__
+
 
 @mapper_registry.mapped
 @dataclass
