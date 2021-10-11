@@ -27,7 +27,7 @@ class Dto(ABC):
         return buffer
 
     def to_dict(self):
-        return self.__dict__
+        return {k: v for (k, v) in self.__dict__.items() if k > 'a'}
 
 
 @mapper_registry.mapped
