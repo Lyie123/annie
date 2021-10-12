@@ -317,7 +317,7 @@ class MatchParticipantFramesDto(Dto):
     __tablename__ = 'timeline_participants'
     __sa_dataclass_metadata_key__ = 'sa'
 
-    game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    game_id: int = field(metadata={'sa': Column(BigInteger, ForeignKey('matches.game_id'), primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     timestamp: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
@@ -406,6 +406,6 @@ class MatchInfoDto(Dto):
 
     participants: List[MatchParticipantDto] = relationship('MatchParticipantDto', backref='matches', lazy=True)
     teams: List[MatchTeamDto] = relationship('MatchTeamDto', backref='matches', lazy=True)
-    timeline_participants: Optional[List[MatchParticipantFramesDto]] = None
+    timeline_participants: Optional[List[MatchParticipantFramesDto]] = relationship('MatchParticipantFramesDto', backref='matches', lazy=True)
 
     tournament_code: str = field(default=None, metadata={'sa': Column(String(60))})

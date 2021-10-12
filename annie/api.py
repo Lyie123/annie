@@ -148,7 +148,7 @@ class LeagueApi(BaseApi):
         if 'game_end_timestamp' in info:
             info['game_end_timestamp'] = datetime.fromtimestamp(info['game_end_timestamp']/1000.0)
         else:
-            info['game_end_timestamp'] = Non
+            info['game_end_timestamp'] = None
 
         participants = info.pop('participants')
         dto_participants = []
@@ -236,11 +236,26 @@ class LeagueApi(BaseApi):
 
         return {'participants': dto_participant_frames}
 
-    def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None):
+    def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None, start_time: datetime=None, end_time: datetime=None, queue: str=None, queue_sub: int=None):
+        """[summary]
+
+        Args:
+            region (Region): [description]
+            puuid (str): [description]
+            start (int, optional): [description]. Defaults to None.
+            count (int, optional): [description]. Defaults to None.
+            start_time (datetime, optional): [description]. Defaults to None.
+            end_time (datetime, optional): [description]. Defaults to None.
+            queue (str, optional): [description]. Defaults to None. [ranked, normal, tourney, tutorial]
+            queue_sub (str, optional): [description]. Defaults to None. {420: '5v5 Ranked Solo', 440: '5v5 Ranked Flex', 400: 'Draft Pick', 430: 'BlindPick'}
+
+        Returns:
+            [type]: [description]
+        """
         if region == Region.EUW:
             region = Region.EUROPE
 
-        result = self.query(region, MatchV5.match_history_by_puuid(puuid), count=count, start=start)
+        result = self.query(region, MatchV5.match_history_by_puuid(puuid), count=count, start=start, startTime=start_time, endTime=end_time, type=queue, queue=queue_sub)
         return result
 
     @staticmethod
