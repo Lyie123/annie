@@ -398,6 +398,7 @@ class MatchInfoDto(Dto):
     game_mode: str = field(metadata={'sa': Column(String(60))})
     game_name: str = field(metadata={'sa': Column(String(60))})
     game_start_timestamp: datetime = field(metadata={'sa': Column(DateTime)})
+    game_end_timestamp: datetime = field(metadata={'sa': Column(DateTime)})
     game_type: str = field(metadata={'sa': Column(String(60))})
     game_version: str = field(metadata={'sa': Column(String(60))})
     map_id: int = field(metadata={'sa': Column(Integer)})

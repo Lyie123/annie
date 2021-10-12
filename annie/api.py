@@ -37,7 +37,7 @@ class BaseApi:
             for k, v in data.items():
                     new_key = sub(r'(?<!^)(?=[A-Z])', '_', k).lower()
                     if isinstance(v, (dict, list)):
-                        new_value = BaseApi.transform_to_snake_case(v)    
+                        new_value = BaseApi.transform_to_snake_case(v)
                         translate[new_key] = new_value
                     else:
                         translate[new_key] = v
@@ -63,9 +63,9 @@ class BaseApi:
             r = requests.get(uri, headers=header)
             data = r.json()
             if r.status_code != 200:
-                raise ApiException(message=f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
+                raise ApiException(message=data['status']['message'], status_code=r.status_code)
         elif r.status_code != 200:
-            raise ApiException(message=f"Status: {data['status']['status_code']} -> {data['status']['message']}", status_code=r.status_code)
+            raise ApiException(message=data['status']['message'], status_code=r.status_code)
 
         data = self.transform_to_snake_case(data)
         return data
@@ -145,6 +145,10 @@ class LeagueApi(BaseApi):
         info = result.pop('info')
         info['game_creation'] = datetime.fromtimestamp(info['game_creation']/1000.0)
         info['game_start_timestamp'] = datetime.fromtimestamp(info['game_start_timestamp']/1000.0)
+        if 'game_end_timestamp' in info:
+            info['game_end_timestamp'] = datetime.fromtimestamp(info['game_end_timestamp']/1000.0)
+        else:
+            info['game_end_timestamp'] = Non
 
         participants = info.pop('participants')
         dto_participants = []
