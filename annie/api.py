@@ -111,8 +111,8 @@ class LeagueApi(BaseApi):
         for entry in result:
             if 'mini_series' in entry:
                 entry['mini_series'] = MiniSeriesDto(
-                    region=region.name, 
-                    summoner_id=summoner_id, 
+                    region=region.name,
+                    summoner_id=summoner_id,
                     league_id=entry['league_id'],
                     **entry.pop('mini_series')
                 )
@@ -139,9 +139,9 @@ class LeagueApi(BaseApi):
     def get_match(self, region: Region, game_id: str, fetch_timeline: bool=False) -> MatchInfoDto:
         if region == Region.EUW:
             region = Region.EUROPE
-        
+
         result = self.query(region, MatchV5.match(game_id))
-        
+
         info = result.pop('info')
         info['game_creation'] = datetime.fromtimestamp(info['game_creation']/1000.0)
         info['game_start_timestamp'] = datetime.fromtimestamp(info['game_start_timestamp']/1000.0)
@@ -186,7 +186,7 @@ class LeagueApi(BaseApi):
                 ban['game_id'] = info['game_id']
                 ban['team_id'] = team['team_id']
                 dto_bans.append(MatchBansDto(**ban))
-            
+
             dto_objectives = []
             objectives = team.pop('objectives')
             for objective in objectives:
@@ -213,7 +213,7 @@ class LeagueApi(BaseApi):
     def get_timeline(self, region: Region, game_id: str):
         if region == Region.EUW:
             region = Region.EUROPE
-        
+
         result = self.query(region, MatchV5.timeline(game_id))
         info = result.pop('info')
         frames = info.pop('frames')

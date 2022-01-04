@@ -390,7 +390,7 @@ class MatchInfoDto(Dto):
     __tablename__ = 'matches'
     __sa_dataclass_metadata_key__ = 'sa'
 
-    platform_id: str = field(metadata={'sa': Column(String(10), primary_key=True)})
+    platform_id: str = field(metadata={'sa': Column(String(10))})
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
 
     game_creation: datetime = field(metadata={'sa': Column(DateTime)})
