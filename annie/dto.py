@@ -392,7 +392,7 @@ class MatchInfoDto(Dto):
     map_id: int = field(metadata={'sa': Column(Integer)})
     queue_id: int = field(metadata={'sa': Column(Integer)})
 
-    participants: List[MatchParticipantDto] = relationship('MatchParticipantDto', backref='matches', lazy=True)
+    participants: List[MatchParticipantDto] = None
     teams: List[MatchTeamDto] = None
     timeline_participants: Optional[List[MatchParticipantFramesDto]] = None
 
