@@ -240,11 +240,11 @@ class MatchParticipantDto(Dto):
     summoner1_id: int = field(metadata={'sa': Column(Integer)})
     summoner2_casts: int = field(metadata={'sa': Column(Integer)})
     summoner2_id: int = field(metadata={'sa': Column(Integer)})
-    summoner_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
+    summoner_id: str = field(metadata={'sa': Column(String(63))})
     summoner_level: int = field(metadata={'sa': Column(Integer)})
-    summoner_name: str = field(metadata={'sa': Column(String(30), primary_key=True)})
+    summoner_name: str = field(metadata={'sa': Column(String(30))})
     team_early_surrendered: bool = field(metadata={'sa': Column(Boolean)})
-    team_position: str = field(metadata={'sa': Column(String(30), primary_key=True)})
+    team_position: str = field(metadata={'sa': Column(String(30))})
     time_c_cing_others: int = field(metadata={'sa': Column(Integer)})
     time_played: int = field(metadata={'sa': Column(Integer)})
     total_damage_dealt: int = field(metadata={'sa': Column(Integer)})
@@ -290,7 +290,7 @@ class MatchObjectivesDto(Dto):
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     objective: str = field(metadata={'sa': Column(String(30), primary_key=True)})
-    
+
     first: bool = field(metadata={'sa': Column(Boolean)})
     kills: int = field(metadata={'sa': Column(Integer)})
 
@@ -307,7 +307,7 @@ class MatchBansDto(Dto):
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     pick_turn: int = field(metadata={'sa': Column(Integer, primary_key=True)})
-    
+
     champion_id: int = field(metadata={'sa': Column(Integer)})
 
 
