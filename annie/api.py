@@ -110,6 +110,7 @@ class LeagueApi(BaseApi):
         entries = []
         for entry in result:
             if 'mini_series' in entry:
+                break;
                 entry['mini_series'] = MiniSeriesDto(
                     region=region.name,
                     summoner_id=summoner_id,
@@ -157,6 +158,7 @@ class LeagueApi(BaseApi):
 
             stats = perks.pop('stat_perks')
             stats['game_id'] = info['game_id']
+            stats['team_id'] = participant['team_id']
             stats['participant_id'] = participant['participant_id']
             dto_stats = MatchStatPerksDto(**stats)
 
@@ -167,6 +169,7 @@ class LeagueApi(BaseApi):
                 for selection in selections:
                     selection['game_id'] = info['game_id']
                     selection['participant_id'] = participant['participant_id']
+                    selection['team_id'] = participant['team_id']
                     selection['description'] = style['description']
                     selection['style'] = style['style']
                     dto_styles.append(MatchStylePerksDto(**selection))
@@ -207,6 +210,8 @@ class LeagueApi(BaseApi):
         if fetch_timeline:
             timeline = self.get_timeline(region, game_id)
             info['timeline_participants'] = timeline['participants']
+        else:
+            info['timeline_participants'] = []
 
         return MatchInfoDto(**info)
 
@@ -228,8 +233,8 @@ class LeagueApi(BaseApi):
                 participant['game_id'] = info['game_id']
                 participant['timestamp'] = frame['timestamp']
                 dto_participant_frames.append(MatchParticipantFramesDto(
-                    **participant, 
-                    **champion_stats, 
+                    **participant,
+                    **champion_stats,
                     **damage_stats,
                     **position
                 ))
@@ -265,6 +270,7 @@ class LeagueApi(BaseApi):
         entries = data.pop('entries')
         for entry in entries:
             if 'mini_series' in entry:
+                break
                 entry['mini_series'] = MiniSeriesDto(
                     region=region.name,
                     summoner_id=entry['summoner_id'],

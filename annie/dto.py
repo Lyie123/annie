@@ -54,8 +54,8 @@ class MiniSeriesDto(Dto):
     __sa_dataclass_metadata_key__ = 'sa'
 
     region: str = field(metadata={'sa': Column(String(30), primary_key=True)})
-    summoner_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
     league_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
+    summoner_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
 
     losses: int = field(metadata={'sa': Column(Integer)})
     progress: str = field(metadata={'sa': Column(String(20))})
@@ -71,9 +71,9 @@ class LeagueEntryDto(Dto):
 
     region: str = field(metadata={'sa': Column(String(30), primary_key=True)})
     summoner_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
-    queue_type: str = field(metadata={'sa': Column(String(30), primary_key=True)})
+    league_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
 
-    league_id: str = field(metadata={'sa': Column(String(63))})
+    queue_type: str = field(metadata={'sa': Column(String(30))})
     summoner_name: str = field(metadata={'sa': Column(String(30))})
     tier: str = field(metadata={'sa': Column(String(20))})
     rank: str = field(metadata={'sa': Column(String(10))})
@@ -84,7 +84,7 @@ class LeagueEntryDto(Dto):
     veteran: bool = field(metadata={'sa': Column(Boolean)})
     fresh_blood: bool = field(metadata={'sa': Column(Boolean)})
     inactive: bool = field(metadata={'sa': Column(Boolean)})
-    mini_series: Optional[MiniSeriesDto] = None
+    # mini_series: Optional[MiniSeriesDto] = relationship('MiniSeriesDto', back_populates=)
 
 
 @mapper_registry.mapped
@@ -92,11 +92,12 @@ class LeagueEntryDto(Dto):
 class LeagueItemDto(Dto):
     __tablename__ = 'league_item'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['region', 'league_id'], ['league_list.region', 'league_list.league_id']), {})
 
     region: str = field(metadata={'sa': Column(String(30), primary_key=True)})
     league_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
-
     summoner_id: str = field(metadata={'sa': Column(String(63), primary_key=True)})
+
     league_points: int = field(metadata={'sa': Column(Integer)})
     wins: int = field(metadata={'sa': Column(Integer)})
     fresh_blood: bool = field(metadata={'sa': Column(Boolean)})
@@ -106,7 +107,7 @@ class LeagueItemDto(Dto):
     hot_streak: bool = field(metadata={'sa': Column(Boolean)})
     rank: str = field(metadata={'sa': Column(String(10))})
     losses: int = field(metadata={'sa': Column(Integer)})
-    mini_series: Optional[MiniSeriesDto] = None
+    # mini_series: Optional[MiniSeriesDto] = relationship('MiniSeriesDto')
 
 
 @mapper_registry.mapped
@@ -121,7 +122,7 @@ class LeagueListDto(Dto):
     tier: str = field(metadata={'sa': Column(String(20))})
     name: str = field(metadata={'sa': Column(String(63))})
     queue: str = field(metadata={'sa': Column(String(30))})
-    entries: List[LeagueItemDto]
+    entries: List[LeagueItemDto] = relationship('LeagueItemDto')
 
 
 @mapper_registry.mapped
@@ -129,8 +130,10 @@ class LeagueListDto(Dto):
 class MatchStatPerksDto(Dto):
     __tablename__ = 'stat_perks'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id', 'team_id', 'participant_id'], ['participants.game_id', 'participants.team_id', 'participants.participant_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
     defense: int = field(metadata={'sa': Column(Integer)})
@@ -143,8 +146,10 @@ class MatchStatPerksDto(Dto):
 class MatchStylePerksDto(Dto):
     __tablename__ = 'style_perks'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id', 'team_id', 'participant_id'], ['participants.game_id', 'participants.team_id', 'participants.participant_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
     description: str = field(metadata={'sa': Column(String(30), primary_key=True)})
     style: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -154,11 +159,13 @@ class MatchStylePerksDto(Dto):
     var2: int = field(metadata={'sa': Column(Integer)})
     var3: int = field(metadata={'sa': Column(Integer)})
 
+
 @mapper_registry.mapped
 @dataclass
 class MatchParticipantDto(Dto):
     __tablename__ = 'participants'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id'], ['matches.game_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -264,8 +271,8 @@ class MatchParticipantDto(Dto):
     wards_placed: int = field(metadata={'sa': Column(Integer)})
     win: bool = field(metadata={'sa': Column(Boolean)})
 
-    style_perks: List[MatchStylePerksDto] = None
-    stat_perks: List[MatchStatPerksDto] = None
+    style_perks: List[MatchStylePerksDto] = relationship('MatchStylePerksDto')
+    stat_perks: List[MatchStatPerksDto] = relationship('MatchStatPerksDto')
 
     inhibitor_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
     turret_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
@@ -277,6 +284,7 @@ class MatchParticipantDto(Dto):
 class MatchObjectivesDto(Dto):
     __tablename__ = 'objectives'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id', 'team_id'], ['teams.game_id', 'teams.team_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -291,6 +299,7 @@ class MatchObjectivesDto(Dto):
 class MatchBansDto(Dto):
     __tablename__ = 'bans'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id', 'team_id'], ['teams.game_id', 'teams.team_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -304,6 +313,7 @@ class MatchBansDto(Dto):
 class MatchParticipantFramesDto(Dto):
     __tablename__ = 'timeline_participants'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id'], ['matches.game_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     participant_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
@@ -363,14 +373,15 @@ class MatchParticipantFramesDto(Dto):
 class MatchTeamDto(Dto):
     __tablename__ = 'teams'
     __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id'], ['matches.game_id']), {})
 
     game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     team_id: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
     win: bool = field(metadata={'sa': Column(Boolean)})
 
-    objectives: List[MatchObjectivesDto] = None
-    bans: List[MatchBansDto] = None
+    objectives: List[MatchObjectivesDto] = relationship('MatchObjectivesDto')
+    bans: List[MatchBansDto] = relationship('MatchBansDto')
 
 @mapper_registry.mapped
 @dataclass
@@ -391,9 +402,8 @@ class MatchInfoDto(Dto):
     game_version: str = field(metadata={'sa': Column(String(60))})
     map_id: int = field(metadata={'sa': Column(Integer)})
     queue_id: int = field(metadata={'sa': Column(Integer)})
-
-    participants: List[MatchParticipantDto] = None
-    teams: List[MatchTeamDto] = None
-    timeline_participants: Optional[List[MatchParticipantFramesDto]] = None
-
     tournament_code: str = field(default=None, metadata={'sa': Column(String(60))})
+
+    participants: List[MatchParticipantDto] = relationship('MatchParticipantDto')
+    teams: List[MatchTeamDto] = relationship('MatchTeamDto')
+    timeline_participants: Optional[List[MatchParticipantFramesDto]] = relationship('MatchParticipantFramesDto')
