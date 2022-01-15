@@ -5,7 +5,7 @@ description = ""
 authors = ["lyie <moch.rene@googlemail.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<4.0"
+python = "^3.8"
 requests = "^2.25.1"
 tabulate = "^0.8.9"
 cachetools = "^4.2.2"
