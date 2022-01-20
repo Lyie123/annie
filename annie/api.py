@@ -24,7 +24,8 @@ import requests
 from time import sleep
 
 class BaseApi:
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, debug: bool=False):
+        self._debug = debug
         self._api_key = api_key
 
     @staticmethod
@@ -47,7 +48,8 @@ class BaseApi:
         parameters = '&'.join([f'{n}={m}' for n, m in kwargs.items() if m is not None])
         uri = f'https://{region.value}{method_name}?{parameters}'
 
-        print(uri)
+        if self._debug:
+            print(uri)
 
         header = {
             'Origin': 'https://developer.riotgames.com',
