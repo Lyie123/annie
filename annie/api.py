@@ -156,6 +156,7 @@ class LeagueApi(BaseApi):
         participants = info.pop('participants')
         dto_participants = []
         for participant in participants:
+            challenges = participant.pop('challenges') # new property not implemented yet
             perks = participant.pop('perks')
 
             stats = perks.pop('stat_perks')
