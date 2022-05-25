@@ -188,6 +188,7 @@ class MatchParticipantDto(Dto):
     detector_wards_placed: int = field(metadata={'sa': Column(Integer)})
     double_kills: int = field(metadata={'sa': Column(Integer)})
     dragon_kills: int = field(metadata={'sa': Column(Integer)})
+    eligible_for_progression: bool = field(metadata={'sa': Column(Boolean)})
     first_blood_assist: bool = field(metadata={'sa': Column(Boolean)})
     first_blood_kill: bool = field(metadata={'sa': Column(Boolean)})
     first_tower_assist: bool = field(metadata={'sa': Column(Boolean)})
