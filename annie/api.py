@@ -13,6 +13,7 @@ from .dto import(
     MatchStatPerksDto,
     MatchStylePerksDto,
     MatchParticipantFramesDto,
+    MatchEventDto,
 )
 from .exception import ApiException
 
@@ -213,8 +214,10 @@ class LeagueApi(BaseApi):
         if fetch_timeline:
             timeline = self.get_timeline(region, game_id)
             info['timeline_participants'] = timeline['participants']
+            info['timeline_events'] = timeline['events']
         else:
             info['timeline_participants'] = []
+            info['timeline_events'] = []
 
         return MatchInfoDto(**info)
 
@@ -226,6 +229,7 @@ class LeagueApi(BaseApi):
         info = result.pop('info')
         frames = info.pop('frames')
         dto_participant_frames = []
+        dto_event_frames = []
 
         for frame in frames:
             participants = frame.pop('participant_frames')
@@ -242,7 +246,18 @@ class LeagueApi(BaseApi):
                     **position
                 ))
 
-        return {'participants': dto_participant_frames}
+            events = frame.pop('events')
+            for sequence, event in enumerate(events):
+                event['game_id'] = info['game_id']
+                event['timeframe'] = frame['timestamp']
+                buffer = MatchEventDto.parse(
+                    sequence = sequence,
+                    **event
+                )
+                if buffer:
+                    dto_event_frames.append(buffer)
+        
+        return {'participants': dto_participant_frames, 'events': dto_event_frames}
 
     def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None, start_time: datetime=None, end_time: datetime=None, queue: Queue=None):
         if region == Region.EUW:

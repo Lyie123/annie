@@ -1,8 +1,7 @@
 from typing import Iterable
-from .dto import metadata
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-from .dto import Dto
+from .dto import metadata, Dto
 
 
 class Database:

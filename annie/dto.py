@@ -1,8 +1,9 @@
+from __future__ import annotations
 from abc import ABC
 from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
 from sqlalchemy.orm import registry, backref, relation, relationship
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey, null
 from sqlalchemy.sql.schema import ForeignKeyConstraint
 from datetime import datetime
 
@@ -371,6 +372,50 @@ class MatchParticipantFramesDto(Dto):
 
 @mapper_registry.mapped
 @dataclass
+class MatchEventDto(Dto):
+    __tablename__ = 'timeline_events'
+    __sa_dataclass_metadata_key__ = 'sa'
+    __table_args__ = (ForeignKeyConstraint(['game_id'], ['matches.game_id']), {})
+
+    game_id: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    timeframe: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
+    sequence: int = field(metadata={'sa': Column(Integer, primary_key=True)})
+
+    kind: str = field(metadata={'sa': Column(String(20))})
+    participant_id: int = field(metadata={'sa': Column(Integer)})
+    timestamp: int = field(metadata={'sa': Column(BigInteger)})
+
+    @staticmethod
+    def parse(**kwargs) -> MatchEventDto:
+        if 'type' not in kwargs:
+            raise ValueError(f'{kwargs} is not an valid event')
+
+        match kwargs['type']:
+            case 'LEVEL_UP' | 'ITEM_PURCHASED' | 'SKILL_LEVEL_UP' | 'ITEM_DESTROYED' | 'ITEM_SOLD' | 'ITEM_UNDO':
+                pass
+            case 'WARD_KILL' | 'BUILDING_KILL' | 'CHAMPION_KILL' | 'TURRET_PLATE_DESTROYED' | 'CHAMPION_SPECIAL_KILL' | 'ELITE_MONSTER_KILL':
+                kwargs['participant_id'] = kwargs.pop('killer_id')
+            case 'WARD_PLACED':
+                kwargs['participant_id'] = kwargs.pop('creator_id')
+            case 'DRAGON_SOUL_GIVEN' | 'PAUSE_END' | 'GAME_END' | 'OBJECTIVE_BOUNTY_PRESTART' | 'OBJECTIVE_BOUNTY_FINISH':
+                kwargs['participant_id'] = None
+            case _:
+                print(f"the event '{kwargs['type']}' is not defined yet")
+                return None
+
+        return MatchEventDto(
+            game_id = kwargs['game_id'],
+            timeframe = kwargs['timeframe'],
+            sequence = kwargs['sequence'],
+            kind = kwargs['type'],
+            participant_id = kwargs['participant_id'],
+            timestamp = kwargs['timestamp']
+        ) 
+
+
+
+@mapper_registry.mapped
+@dataclass
 class MatchTeamDto(Dto):
     __tablename__ = 'teams'
     __sa_dataclass_metadata_key__ = 'sa'
@@ -408,3 +453,4 @@ class MatchInfoDto(Dto):
     participants: List[MatchParticipantDto] = relationship('MatchParticipantDto')
     teams: List[MatchTeamDto] = relationship('MatchTeamDto')
     timeline_participants: Optional[List[MatchParticipantFramesDto]] = relationship('MatchParticipantFramesDto')
+    timeline_events: Optional[List[MatchEventDto]] = relationship('MatchEventDto')
