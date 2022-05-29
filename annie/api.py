@@ -263,6 +263,12 @@ class LeagueApi(BaseApi):
         if region == Region.EUW:
             region = Region.EUROPE
 
+        if start_time is not None:
+            start_time = int(start_time.timestamp())
+        
+        if end_time is not None:
+            end_time = int(end_time.timestamp())
+
         match_type = None
         queue_type = None
         if queue is not None:

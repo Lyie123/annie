@@ -189,7 +189,6 @@ class MatchParticipantDto(Dto):
     detector_wards_placed: int = field(metadata={'sa': Column(Integer)})
     double_kills: int = field(metadata={'sa': Column(Integer)})
     dragon_kills: int = field(metadata={'sa': Column(Integer)})
-    eligible_for_progression: bool = field(metadata={'sa': Column(Boolean)})
     first_blood_assist: bool = field(metadata={'sa': Column(Boolean)})
     first_blood_kill: bool = field(metadata={'sa': Column(Boolean)})
     first_tower_assist: bool = field(metadata={'sa': Column(Boolean)})
@@ -272,6 +271,7 @@ class MatchParticipantDto(Dto):
     wards_killed: int = field(metadata={'sa': Column(Integer)})
     wards_placed: int = field(metadata={'sa': Column(Integer)})
     win: bool = field(metadata={'sa': Column(Boolean)})
+    eligible_for_progression: bool = field(default=False, metadata={'sa': Column(Boolean)})
 
     style_perks: List[MatchStylePerksDto] = relationship('MatchStylePerksDto')
     stat_perks: List[MatchStatPerksDto] = relationship('MatchStatPerksDto')
@@ -381,7 +381,7 @@ class MatchEventDto(Dto):
     timeframe: int = field(metadata={'sa': Column(BigInteger, primary_key=True)})
     sequence: int = field(metadata={'sa': Column(Integer, primary_key=True)})
 
-    kind: str = field(metadata={'sa': Column(String(20))})
+    kind: str = field(metadata={'sa': Column(String(40))})
     participant_id: int = field(metadata={'sa': Column(Integer)})
     timestamp: int = field(metadata={'sa': Column(BigInteger)})
 
