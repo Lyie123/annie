@@ -3,7 +3,7 @@ from abc import ABC
 from dataclasses import dataclass, field
 from typing import List, Dict, Union, Optional
 from sqlalchemy.orm import registry, backref, relation, relationship
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey, null
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, BigInteger, ForeignKey
 from sqlalchemy.sql.schema import ForeignKeyConstraint
 from datetime import datetime
 
@@ -279,6 +279,21 @@ class MatchParticipantDto(Dto):
     inhibitor_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
     turret_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
     nexus_takedowns: int = field(default=None, metadata={'sa': Column(Integer)})
+    all_in_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    assist_me_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    bait_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    basic_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    command_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    danger_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    enemy_missing_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    enemy_vision_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    get_back_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    hold_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    need_vision_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    need_vision_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    on_my_way_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    push_pings: int = field(default=0, metadata={'sa': Column(Integer)})
+    vision_cleared_pings: int = field(default=0, metadata={'sa': Column(Integer)})
 
 
 @mapper_registry.mapped
