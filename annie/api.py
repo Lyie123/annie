@@ -18,11 +18,12 @@ from .dto import(
 from .exception import ApiException
 
 from cachetools import cached, TTLCache
-from typing import Dict, List, Union, Set, Optional
+from typing import Dict, List, Union
 from re import sub
 from datetime import datetime
 import requests
 from time import sleep
+
 
 class BaseApi:
     def __init__(self, api_key: str, debug: bool=False):
@@ -37,12 +38,12 @@ class BaseApi:
         elif isinstance(data, dict):
             translate = {}
             for k, v in data.items():
-                    new_key = sub(r'(?<!^)(?=[A-Z])', '_', k).lower()
-                    if isinstance(v, (dict, list)):
-                        new_value = BaseApi.transform_to_snake_case(v)
-                        translate[new_key] = new_value
-                    else:
-                        translate[new_key] = v
+                new_key = sub(r'(?<!^)(?=[A-Z])', '_', k).lower()
+                if isinstance(v, (dict, list)):
+                    new_value = BaseApi.transform_to_snake_case(v)
+                    translate[new_key] = new_value
+                else:
+                    translate[new_key] = v
         return translate
 
     def query(self, region: Region, method_name: str, **kwargs) -> Dict:
@@ -113,7 +114,7 @@ class LeagueApi(BaseApi):
         entries = []
         for entry in result:
             if 'mini_series' in entry:
-                break;
+                break
                 entry['mini_series'] = MiniSeriesDto(
                     region=region.name,
                     summoner_id=summoner_id,
@@ -251,12 +252,12 @@ class LeagueApi(BaseApi):
                 event['game_id'] = info['game_id']
                 event['timeframe'] = frame['timestamp']
                 buffer = MatchEventDto.parse(
-                    sequence = sequence,
+                    sequence=sequence,
                     **event
                 )
                 if buffer:
                     dto_event_frames.append(buffer)
-        
+
         return {'participants': dto_participant_frames, 'events': dto_event_frames}
 
     def get_match_history(self, region: Region, puuid : str, start: int=None, count: int=None, start_time: datetime=None, end_time: datetime=None, queue: Queue=None):
@@ -265,7 +266,7 @@ class LeagueApi(BaseApi):
 
         if start_time is not None:
             start_time = int(start_time.timestamp())
-        
+
         if end_time is not None:
             end_time = int(end_time.timestamp())
 
